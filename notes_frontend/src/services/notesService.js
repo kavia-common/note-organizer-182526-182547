@@ -3,13 +3,10 @@ import { generateId } from '../utils/id';
 const STORAGE_KEY = 'notes_app_v1';
 
 /**
- * PUBLIC_INTERFACE
+ * Factory to create the localStorage-backed adapter.
+ * Implements the same interface as the API adapter.
  */
-export function createNotesService() {
-  /**
-   * This service abstracts CRUD operations for notes.
-   * Currently uses localStorage; can be swapped with API in the future.
-   */
+function createLocalAdapter() {
   const readAll = () => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -95,4 +92,59 @@ export function createNotesService() {
   };
 
   return { list, get, create, update, remove, togglePin, toggleArchive };
+}
+
+/**
+ * Placeholder API adapter with clear signatures.
+ * Replace the bodies with real HTTP calls when backend is available.
+ */
+function createApiAdapter(baseUrl) {
+  // Helpers could be added here for fetch with JSON handling.
+  // For now, throw to signal unimplemented calls.
+  const notImpl = (name) => () => {
+    throw new Error(`API adapter method ${name} is not implemented. Configure a backend and implement HTTP calls.`);
+  };
+
+  // PUBLIC_INTERFACE
+  const list = notImpl('list');
+
+  // PUBLIC_INTERFACE
+  const get = notImpl('get');
+
+  // PUBLIC_INTERFACE
+  const create = notImpl('create');
+
+  // PUBLIC_INTERFACE
+  const update = notImpl('update');
+
+  // PUBLIC_INTERFACE
+  const remove = notImpl('remove');
+
+  // PUBLIC_INTERFACE
+  const togglePin = notImpl('togglePin');
+
+  // PUBLIC_INTERFACE
+  const toggleArchive = notImpl('toggleArchive');
+
+  return { list, get, create, update, remove, togglePin, toggleArchive, __baseUrl: baseUrl };
+}
+
+// PUBLIC_INTERFACE
+export function createNotesService() {
+  /**
+   * This service abstracts CRUD operations for notes.
+   * Adapter toggle:
+   * - Default: localStorage
+   * - Optional: API (placeholder), set REACT_APP_NOTES_STORAGE=api and REACT_APP_NOTES_API_URL
+   *
+   * Env variables (handled by CRA build-time):
+   * - REACT_APP_NOTES_STORAGE: 'local' | 'api'
+   * - REACT_APP_NOTES_API_URL: base URL for API adapter (when using 'api')
+   */
+  const mode = (process.env.REACT_APP_NOTES_STORAGE || 'local').toLowerCase();
+  if (mode === 'api') {
+    const baseUrl = process.env.REACT_APP_NOTES_API_URL || '';
+    return createApiAdapter(baseUrl);
+  }
+  return createLocalAdapter();
 }

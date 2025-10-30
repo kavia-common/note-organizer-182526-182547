@@ -13,9 +13,20 @@ function useHashRoute() {
   const [hash, setHash] = useState(() => window.location.hash || '#/notes');
 
   useEffect(() => {
-    const onHashChange = () => setHash(window.location.hash || '#/notes');
-    window.addEventListener('hashchange', onHashChange);
-    return () => window.removeEventListener('hashchange', onHashChange);
+    const normalize = () => {
+      // Ensure we always have a route; default to /notes
+      const h = window.location.hash;
+      if (!h || h === '#' || h === '') {
+        window.location.hash = '#/notes';
+        setHash('#/notes');
+      } else {
+        setHash(h);
+      }
+    };
+    window.addEventListener('hashchange', normalize);
+    // run on mount
+    normalize();
+    return () => window.removeEventListener('hashchange', normalize);
   }, []);
 
   const route = useMemo(() => {
